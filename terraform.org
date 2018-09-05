@@ -1,30 +1,143 @@
 #+TITLE: IaC avec Terraform
 #+AUTHOR: Nguyen Duy Tho
 #+STARTUP: indent
-* IaC avec Terraform
-** Introduction
-** Pourquoi Terraform 
-** Démo
-*** Démarrer Vault
+* Introduction
+- IaC: Description de l'infrastructure en utilisant une langage de configuration de haut niveau
+- HCL Hashicorp Configuration Language: langage déclarative
+- Déclarative vs Impérative
+* Pourquoi Terraform vs scripts maison
+- Scripts maison:
+  - L'entretien
+  - L'approche MVP
+  - dépendance sur la compétence de certains membres
+- Terraform:
+  - logiciel libre, grande communauté
+  - syntaxe simple et unifiée
+  - multitude d'intégration avec les fournisseurs
+* Que supporte Terraform?
+Les fournisseurs (providers):
+- Les clouds majeurs: AWS, Azure, GCP, OCP, vSphere, ...
+- Les petits clouds: DigitalOcean, Heroku, OpenStack, OVH, ...
+- Les applications infrastructure: Chef, Consul, Vault, Docker, K8s, ...
+- Réseautique: Cloudflare, DNS, HTTP, ...
+- VCS: Bitbucket, Github, Gitlab
+- Surveillance: Datadog, Grafana, New Relic, PagerDuty, ...
+- Base de données: InfluxDB, MySQL, PostgreSQL
+- Communautaire: EfficientIP, AD, Auth0, Artifactory, ...
+* Fonctionnalités de Terraform
+- IaC
+- Plan d'exécution
+- Graphe de ressources
+- Automate de changement
+* Un Anneau pour les gouverner tous
+- Code terraform pour former:
+  - CF orgs, spaces, users
+  - Grafana orgs
+  - Vault secrets
+* Environnement de démo
+** Vault
 #+BEGIN_SRC sh
 vault server -dev
 vault unseal
 vault auth
 vault secrets mv secret/ kv/
 #+END_SRC
-*** Démarrer PCFdev
+** PCFDev
 #+BEGIN_SRC sh
 cf dev start
 #+END_SRC
-*** Démarrer Grafana
+** Grafana
 #+BEGIN_SRC sh
 docker run -d --name=grafana -p 3000:3000 grafana/grafana
 #+END_SRC
-*** Application des resources Terraform
+* Variables
+#+BEGIN_SRC terraform
+variable "orgs" {
+  default = [
+    "org1",
+    "org2",
+    "org3",
+  ]
+}
+#+END_SRC
+* Providers
+#+BEGIN_SRC terraform
+provider "grafana" {
+  url     = "http://localhost:3000"
+  auth    = "admin:admin"
+}
+provider "cf" {
+  api_url             = "https://api.local.pcfdev.io"
+  user                = "admin"
+  password            = "admin"
+  uaa_client_id       = "admin"
+  uaa_client_secret   = "admin-client-secret"
+  skip_ssl_validation = true
+}
+provider "vault" {
+}
+#+END_SRC
+* Grafana
+#+BEGIN_SRC terraform
+resource "grafana_organization" "org" {
+  count        = "${length(var.orgs)}"
+  name         = "${var.orgs[count.index]}"
+  admin_user   = "admin"
+}
+#+END_SRC
+* Cloudfoundry
+#+BEGIN_SRC terraform
+resource "cf_org" "orgs" {
+  count        = "${length(var.orgs)}"
+  name         = "${var.orgs[count.index]}"
+  managers     = ["admin"]
+}
+resource "cf_space" "spaces" {
+  count      = "${length(var.orgs)}"
+  org        = "${element(cf_org.orgs.*.id, count.index)}"
+  name       = "dev"
+  developers = [
+    "${element(cf_user.users.*.id, count.index)}"
+  ]
+}
+
+resource "random_string" "passwords" {
+  count            = "${length(var.orgs)}"
+  length           = 20
+  special          = false
+}
+
+resource "cf_user" "users" {
+  count    = "${length(var.orgs)}"
+  name     = "${format("%s-ciuser",var.orgs[count.index])}"
+  password = "${element(random_string.passwords.*.result, count.index)}"
+}
+#+END_SRC
+* Vault
+#+BEGIN_SRC terraform
+resource "vault_mount" "secret" {
+  path = "secret"
+  type = "generic"
+  description = "Demo mount"
+}
+
+resource "vault_generic_secret" "secrets" {
+  count = "${length(var.orgs)}"
+  path  = "${format("secret/%s-ciuser-password", var.orgs[count.index])}"
+  data_json = <<EOT
+{
+  "value":   "${element(random_string.passwords.*.result, count.index)}"
+}
+EOT
+}
+#+END_SRC
+* Démo
+** Application des resources Terraform
 #+BEGIN_SRC sh
 git clone https://github.com/emerald-squad/demo-terraform.git
 cd demo-terraform
 terraform init
 terraform plan
-terraform apply 
+terraform apply
 #+END_SRC
+* Q & A
