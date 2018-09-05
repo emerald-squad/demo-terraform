@@ -5,15 +5,20 @@
 - IaC: Description de l'infrastructure en utilisant une langage de configuration de haut niveau
 - HCL Hashicorp Configuration Language: langage déclarative
 - Déclarative vs Impérative
+* Problématique
+- Le développement des outils pour les processus d'automatisation du déploiement, de la maintenance et de la livraison continue de la plate-forme a entraîné un manque d'uniformité et une perte de contrôle pour leur gestion.
+* Besoin
+- Simplifier et uniformiser le développement et la maintenance des outils dans le processus d'automatisation afin d'en augmenter le contrôle. 
 * Pourquoi Terraform vs scripts maison
 - Scripts maison:
   - L'entretien
-  - L'approche MVP
-  - dépendance sur la compétence de certains membres
+  - L'approche MVP (Minimum Viable Product)
+  - Dépendance sur la compétence de certains membres
 - Terraform:
   - logiciel libre, grande communauté
   - syntaxe simple et unifiée
   - multitude d'intégration avec les fournisseurs
+  - approche déclarative (on déclare l'état désiré)
 * Que supporte Terraform?
 Les fournisseurs (providers):
 - Les clouds majeurs: AWS, Azure, GCP, OCP, vSphere, ...
