@@ -1,0 +1,6 @@
+terraform.tfstate.backup
+terraform.tfstate
+tfplan.out
+.terraform/
+*.swp
+*~
