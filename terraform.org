@@ -12,7 +12,7 @@
 * Pourquoi Terraform vs scripts maison
 - Scripts maison:
   - L'entretien
-  - L'approche MVP (Minimum Viable Product)
+  - L'approche MVP (Minimum Viable Product) empêche la maintenabilité et l'ajout de fonctionnalité
   - Dépendance sur la compétence de certains membres
 - Terraform:
   - logiciel libre, grande communauté
