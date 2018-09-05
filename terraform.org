@@ -132,7 +132,7 @@ EOT
 }
 #+END_SRC
 * Démo
-** Application des resources Terraform
+** Application des ressources Terraform
 #+BEGIN_SRC sh
 git clone https://github.com/emerald-squad/demo-terraform.git
 cd demo-terraform
