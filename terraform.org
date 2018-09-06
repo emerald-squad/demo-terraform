@@ -46,7 +46,7 @@ vault server -dev
 export VAULT_ADDR=http://localhost:8200
 vault unseal
 vault auth
-vault secrets mv secret/ kv/
+vault secrets move secret/ kv/
 #+END_SRC
 ** PCFDev
 #+BEGIN_SRC sh
