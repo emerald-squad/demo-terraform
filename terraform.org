@@ -43,6 +43,7 @@ Les fournisseurs (providers):
 ** Vault
 #+BEGIN_SRC sh
 vault server -dev
+export VAULT_ADDR=http://localhost:8200
 vault unseal
 vault auth
 vault secrets mv secret/ kv/
@@ -50,6 +51,7 @@ vault secrets mv secret/ kv/
 ** PCFDev
 #+BEGIN_SRC sh
 cf dev start
+cf login -a https://api.local.pcfdev.io --skip-ssl-validation -u admin -p admin
 #+END_SRC
 ** Grafana
 #+BEGIN_SRC sh

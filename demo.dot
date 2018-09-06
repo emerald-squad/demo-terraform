@@ -1,0 +1,44 @@
+digraph {
+	compound = "true"
+	newrank = "true"
+	subgraph "root" {
+		"[root] cf_org.orgs" [label = "cf_org.orgs", shape = "box"]
+		"[root] cf_space.spaces" [label = "cf_space.spaces", shape = "box"]
+		"[root] cf_user.users" [label = "cf_user.users", shape = "box"]
+		"[root] grafana_organization.org" [label = "grafana_organization.org", shape = "box"]
+		"[root] provider.cf" [label = "provider.cf", shape = "diamond"]
+		"[root] provider.grafana" [label = "provider.grafana", shape = "diamond"]
+		"[root] provider.random" [label = "provider.random", shape = "diamond"]
+		"[root] provider.vault" [label = "provider.vault", shape = "diamond"]
+		"[root] random_string.passwords" [label = "random_string.passwords", shape = "box"]
+		"[root] vault_generic_secret.secrets" [label = "vault_generic_secret.secrets", shape = "box"]
+		"[root] vault_mount.secret" [label = "vault_mount.secret", shape = "box"]
+		"[root] cf_org.orgs" -> "[root] provider.cf"
+		"[root] cf_org.orgs" -> "[root] var.orgs"
+		"[root] cf_space.spaces" -> "[root] cf_org.orgs"
+		"[root] cf_space.spaces" -> "[root] cf_user.users"
+		"[root] cf_user.users" -> "[root] provider.cf"
+		"[root] cf_user.users" -> "[root] random_string.passwords"
+		"[root] grafana_organization.org" -> "[root] provider.grafana"
+		"[root] grafana_organization.org" -> "[root] var.orgs"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] cf_space.spaces"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] grafana_organization.org"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] vault_generic_secret.secrets"
+		"[root] meta.count-boundary (count boundary fixup)" -> "[root] vault_mount.secret"
+		"[root] provider.cf (close)" -> "[root] cf_space.spaces"
+		"[root] provider.grafana (close)" -> "[root] grafana_organization.org"
+		"[root] provider.random (close)" -> "[root] random_string.passwords"
+		"[root] provider.vault (close)" -> "[root] vault_generic_secret.secrets"
+		"[root] provider.vault (close)" -> "[root] vault_mount.secret"
+		"[root] random_string.passwords" -> "[root] provider.random"
+		"[root] random_string.passwords" -> "[root] var.orgs"
+		"[root] root" -> "[root] meta.count-boundary (count boundary fixup)"
+		"[root] root" -> "[root] provider.cf (close)"
+		"[root] root" -> "[root] provider.grafana (close)"
+		"[root] root" -> "[root] provider.random (close)"
+		"[root] root" -> "[root] provider.vault (close)"
+		"[root] vault_generic_secret.secrets" -> "[root] provider.vault"
+		"[root] vault_generic_secret.secrets" -> "[root] random_string.passwords"
+		"[root] vault_mount.secret" -> "[root] provider.vault"
+	}
+}
