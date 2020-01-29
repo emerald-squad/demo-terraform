@@ -41,7 +41,7 @@ Les fournisseurs (providers):
 * Environnement de démo
 ** InfluxDB
 #+BEGIN_SRC sh
-docker run -p 8086:8086 -v $PWD:/var/lib/influxdb influxdb
+docker run -p 8086:8086 influxdb
 #+END_SRC
 ** Grafana
 #+BEGIN_SRC sh
@@ -79,7 +79,7 @@ resource "influxdb_database" "metrics" {
 * Démo
 ** Application des ressources Terraform
 #+BEGIN_SRC sh
-git clone https://github.com/emerald-squad/demo-terraform.git
+git clone https://github.com/ntdt/demo-terraform.git
 cd demo-terraform
 terraform init
 terraform plan
