@@ -34,108 +34,46 @@ Les fournisseurs (providers):
 - Plan d'exécution
 - Graphe de ressources
 - Automate de changement
-* Un Anneau pour les gouverner tous
+* La colle pour l'infrastructure
 - Code terraform pour former:
-  - CF orgs, spaces, users
-  - Grafana orgs
-  - Vault secrets
+  - Grafana datasource
+  - InfluxDB database
 * Environnement de démo
-** Vault
+** InfluxDB
 #+BEGIN_SRC sh
-vault server -dev
-export VAULT_ADDR=http://localhost:8200
-vault unseal
-vault auth
-vault secrets move secret/ kv/
-#+END_SRC
-** PCFDev
-#+BEGIN_SRC sh
-cf dev start
-cf login -a https://api.local.pcfdev.io --skip-ssl-validation -u admin -p admin
+docker run -p 8086:8086 -v $PWD:/var/lib/influxdb influxdb
 #+END_SRC
 ** Grafana
 #+BEGIN_SRC sh
 docker run -d --name=grafana -p 3000:3000 grafana/grafana
 #+END_SRC
-* Variables
-#+BEGIN_SRC terraform
-variable "orgs" {
-  default = [
-    "org1",
-    "org2",
-    "org3",
-  ]
-}
-#+END_SRC
 * Providers
 #+BEGIN_SRC terraform
 provider "grafana" {
-  url     = "http://localhost:3000"
-  auth    = "admin:admin"
+  url  = "http://localhost:3000"
+  auth = "admin:admin"
 }
-provider "cf" {
-  api_url             = "https://api.local.pcfdev.io"
-  user                = "admin"
-  password            = "admin"
-  uaa_client_id       = "admin"
-  uaa_client_secret   = "admin-client-secret"
-  skip_ssl_validation = true
+
+provider "influxdb" {
+  url      = "http://localhost:8086"
+  user     = "admin"
 }
-provider "vault" {
-}
+
 #+END_SRC
 * Grafana
 #+BEGIN_SRC terraform
-resource "grafana_organization" "org" {
-  count        = "${length(var.orgs)}"
-  name         = "${var.orgs[count.index]}"
-  admin_user   = "admin"
+resource "grafana_datasource" "metrics" {
+  type          = "influxdb"
+  name          = "awesome_app_metrics"
+  url           = "http://localhost:8086"
+  database_name = influxdb_database.metrics.name
 }
+
 #+END_SRC
-* Cloudfoundry
+* InfluxDB
 #+BEGIN_SRC terraform
-resource "cf_org" "orgs" {
-  count        = "${length(var.orgs)}"
-  name         = "${var.orgs[count.index]}"
-  managers     = ["admin"]
-}
-resource "cf_space" "spaces" {
-  count      = "${length(var.orgs)}"
-  org        = "${element(cf_org.orgs.*.id, count.index)}"
-  name       = "dev"
-  developers = [
-    "${element(cf_user.users.*.id, count.index)}"
-  ]
-}
-
-resource "random_string" "passwords" {
-  count            = "${length(var.orgs)}"
-  length           = 20
-  special          = false
-}
-
-resource "cf_user" "users" {
-  count    = "${length(var.orgs)}"
-  name     = "${format("%s-ciuser",var.orgs[count.index])}"
-  password = "${element(random_string.passwords.*.result, count.index)}"
-}
-#+END_SRC
-* Vault
-#+BEGIN_SRC terraform
-resource "vault_mount" "secret" {
-  path = "secret"
-  type = "generic"
-  description = "Demo mount"
-}
-
-resource "vault_generic_secret" "secrets" {
-  count = "${length(var.orgs)}"
-  path  = "${format("secret/%s-ciuser-password", var.orgs[count.index])}"
-  data_json = <<EOT
-{
-  "value":   "${element(random_string.passwords.*.result, count.index)}"
-}
-EOT
+resource "influxdb_database" "metrics" {
+  name = "awesome_app"
 }
 #+END_SRC
 * Démo
